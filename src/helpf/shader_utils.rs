@@ -1,9 +1,36 @@
+pub use std::mem;
 use ogl33::*;
-use std::ffi::CString;
+//use std::ffi::CString;
 // /use core::mem::{size_of, size_of_val};
 
 use super::utools;
-pub type Vec3 = [f32; 3];
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Vec3 {
+    x : f32,
+    y : f32,
+    z : f32
+}
+
+impl From<[f32;3]> for Vec3 {
+    fn from(value: [f32;3]) -> Self {
+        Vec3 { x: value[0], y: value[1], z: value[2] }
+    }
+}
+
+ 
+pub const VEC3_SIZE : isize = mem::size_of::<Vec3>() as isize;
+
+#[derive(Clone)]
+pub struct Vertex_Data {
+    pos : Vec3,
+    color : Vec3,
+}
+
+impl From<[Vec3;2]> for Vertex_Data {
+    fn from(value: [Vec3;2]) -> Self {
+        Vertex_Data { pos: value[0], color: value[1] } 
+    }
+}
 
 /*
 I need:
@@ -23,10 +50,9 @@ I need:
 pub trait ShaderProgram {
     fn compile_shader(&mut self) -> &mut Self;
     fn link_program(&mut self) -> &mut Self;
-    fn use_program(&mut self) -> &mut Self;
+    fn use_program(&self);
     fn cach_uniforms(&mut self) -> &mut Self;
 }
-
 
 #[derive(Default)]
 pub struct SimpleShader {
@@ -35,7 +61,6 @@ pub struct SimpleShader {
     pub shader_program : u32,
     pub uniform_list : Vec<(String, i32)>
 }
-
 
 impl ShaderProgram for SimpleShader {
     
@@ -89,11 +114,11 @@ impl ShaderProgram for SimpleShader {
         self
     }
 
-    fn use_program(&mut self) -> &mut Self {
+    fn use_program(&self){
         unsafe {
             glUseProgram(self.shader_program);
         }
-        self
+
     }
 
     fn cach_uniforms(&mut self) -> &mut Self {
@@ -121,7 +146,19 @@ impl Drop for SimpleShader {
     }
 }
 
-pub fn check_shader_err(shader : u32){
+pub struct Object<T:Clone>{
+    pub data : Vec<T>,
+    data_size: isize,
+    text_id: i32,
+}
+
+impl<T:Clone> Object<T> {
+    fn new(model_data: &mut [T], size: isize) -> Self{
+        Object { data: model_data.to_vec(), data_size: size, text_id: 0 }
+    }
+}
+
+fn check_shader_err(shader : u32){
     let mut success = 0;
     unsafe{
         glGetShaderiv(shader, GL_COMPILE_STATUS, &mut success);
@@ -137,56 +174,5 @@ pub fn check_shader_err(shader : u32){
             v.set_len(log_len.try_into().unwrap());
             panic!("Fragment Compile Error: {}", String::from_utf8_lossy(&v));
         }
-    }
-}
-
-
-
-
-//Vert & Frag Shader, assumed to be given as prog arguments
-pub fn load_simple_shaders(){
-
-    unsafe{
-
-        //Setup Vertex Shader
-        let vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-        assert_ne!(vertex_shader, 0);
-
-        let vert_shader = utools::load_file(1).unwrap();
-        glShaderSource(vertex_shader, 1, &(vert_shader.as_str().as_bytes().as_ptr().cast()), 
-            &(vert_shader.len().try_into().unwrap()));
-
-        glCompileShader(vertex_shader);
-
-        //Check for Erros in Vertex Shader
-        check_shader_err(vertex_shader);
-
-
-        //Setup Fragment Shader
-        let fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-        assert_ne!(fragment_shader, 0);
-
-        let frag_shader= utools::load_file(2).unwrap();
-        glShaderSource(fragment_shader, 1, &(frag_shader.as_str().as_bytes().as_ptr().cast()), 
-            &(frag_shader.len().try_into().unwrap()));
-
-        glCompileShader(fragment_shader);
-        //Check for Frag Errors
-        check_shader_err(fragment_shader);
-
-        //Gen, link, and use Shaderprogram 
-        let shader_program = glCreateProgram();
-        glAttachShader(shader_program, vertex_shader);
-        glAttachShader(shader_program, fragment_shader);
-        glLinkProgram(shader_program);
-
-
-        glDeleteShader(vertex_shader);
-        glDeleteShader(fragment_shader);
-
-
-        
-        glUseProgram(shader_program);
-
     }
 }
