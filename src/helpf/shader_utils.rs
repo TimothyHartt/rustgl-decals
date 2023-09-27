@@ -32,20 +32,7 @@ impl From<[Vec3;2]> for Vertex_Data {
     }
 }
 
-/*
-I need:
- * A Wrapper structer that encapsulates a shader so we can.
-    * Store the shader program in memory encase we need to link it again without reading the file.
-    * Keep track of a list of what uniforms any given shader program has.
 
- * A wrapper around to describe render groups. Or possibly objects. 
-    * Keep track of VAO used.
-    * Point to texture and model data in memory that will need to be sent to memory.
-    * It's model matrix. (Not too sure where we should be running these calculations to create the model matrix.)
-        * Translation, Rotation, Scale. Even on the CPU this shouldn't take up too much of our load(?).
-
-
-*/
 
 pub trait ShaderProgram {
     fn compile_shader(&mut self) -> &mut Self;

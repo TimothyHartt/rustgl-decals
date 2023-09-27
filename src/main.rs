@@ -62,12 +62,18 @@ impl RenderDecal {
 fn bind_vo(){
     unsafe{
         let mut vao = 0;
+        let mut vbo = 0;
         glGenVertexArrays(1, &mut vao);
         glBindVertexArray(vao);
 
-        let mut vbo = 0;
+        
         glGenBuffers(1, &mut vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        let mut instance_vbo = 0;
+        glGenBuffers(1, &mut instance_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
+
     }
 }
 
@@ -77,6 +83,11 @@ fn set_vertex_attributes(){
             size_of::<Vec3>().try_into().unwrap(), 0 as *const _);
         glEnableVertexAttribArray(0);
 
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+            size_of::<Vec3>().try_into().unwrap(), 0 as *const _);
+        glEnableVertexAttribArray(0);
+        glVertexAttribDivisor(1, 1);
+
     }
 }
 
@@ -85,8 +96,11 @@ fn bind_buffer_data(){
 
     let verts: Vec<Vec3> = 
         vec![[-0.5, -0.5, 0.0].into(), [0.5, -0.5, 0.0].into(), [0.0, 0.5, 0.0].into()];
+
+    let pos_a : Vec<Vec3> = vec![[0.25, 0.25, 0.0].into(), [0.0, 0.0, 0.0].into()];
     
     unsafe{
+        //glBindBuffer(GL_ARRAY_BUFFER, )
         glBufferData(GL_ARRAY_BUFFER, VEC3_SIZE * (verts.len() as isize),
         verts.as_ptr().cast(), GL_STATIC_DRAW);
     }
