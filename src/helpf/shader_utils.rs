@@ -4,33 +4,6 @@ use ogl33::*;
 // /use core::mem::{size_of, size_of_val};
 
 use super::utools;
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Vec3 {
-    x : f32,
-    y : f32,
-    z : f32
-}
-
-impl From<[f32;3]> for Vec3 {
-    fn from(value: [f32;3]) -> Self {
-        Vec3 { x: value[0], y: value[1], z: value[2] }
-    }
-}
-
- 
-pub const VEC3_SIZE : isize = mem::size_of::<Vec3>() as isize;
-
-#[derive(Clone)]
-pub struct Vertex_Data {
-    pos : Vec3,
-    color : Vec3,
-}
-
-impl From<[Vec3;2]> for Vertex_Data {
-    fn from(value: [Vec3;2]) -> Self {
-        Vertex_Data { pos: value[0], color: value[1] } 
-    }
-}
 
 
 
@@ -43,9 +16,9 @@ pub trait ShaderProgram {
 
 #[derive(Default)]
 pub struct SimpleShader {
-    pub vertex_shader : u32,
-    pub fragment_shader : u32,
-    pub shader_program : u32,
+    vertex_shader : u32,
+    fragment_shader : u32,
+    shader_program : u32,
     pub uniform_list : Vec<(String, i32)>
 }
 
@@ -133,17 +106,7 @@ impl Drop for SimpleShader {
     }
 }
 
-pub struct Object<T:Clone>{
-    pub data : Vec<T>,
-    data_size: isize,
-    text_id: i32,
-}
 
-impl<T:Clone> Object<T> {
-    fn new(model_data: &mut [T], size: isize) -> Self{
-        Object { data: model_data.to_vec(), data_size: size, text_id: 0 }
-    }
-}
 
 fn check_shader_err(shader : u32){
     let mut success = 0;

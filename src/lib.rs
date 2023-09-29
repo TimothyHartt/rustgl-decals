@@ -17,4 +17,5 @@ pub use ogl33::*;
 pub mod helpf {
     pub mod utools;
     pub mod shader_utils;
+    pub mod types;
 }
