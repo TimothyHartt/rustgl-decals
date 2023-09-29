@@ -1,5 +1,4 @@
 use ogl33::*;
-use std::mem;
 use iunorm::*;
 
 //Buffer Data Types
@@ -7,7 +6,7 @@ pub trait BufferType : Sized {
     const SIZE : isize = std::mem::size_of::<Self>() as isize;
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct Vec3<T> {
     x : T,
     y : T,
@@ -26,26 +25,14 @@ impl From<[f32; 3]> for Vec3<Unorm8> {
     }
 }
 
-#[derive(Clone)]
-pub struct Vertex_Data {
-    pos : Vec3::<f32>,
-    color : Vec3::<f32>,
-}
-
-impl From<(Vec3::<f32>,Vec3::<f32>)> for Vertex_Data {
-    fn from(value: (Vec3::<f32>,Vec3::<f32>)) -> Self {
-        Vertex_Data { pos: value.0, color: value.1 } 
-    }
-}
-
 impl<T> BufferType for Vec3<T>{}
-impl BufferType for Vertex_Data{}
 
 //Render batch Groups
 pub trait RenderGroup {
     fn gen_vo(&mut self);
     fn bind_vo(&self);
     fn draw_objects(&self);
+    fn bind_buffer(&self);
 }
 
 #[derive( Default)]
@@ -69,15 +56,18 @@ impl RenderGroup for RenderDecal {
             glBindVertexArray(self.vao);
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo);
         }
-        
     }
 
     fn draw_objects(&self) {
-        let t_size = mem::size_of::<Vertex_Data>() as isize;
         unsafe{
-            glBufferData(GL_ARRAY_BUFFER, t_size * (self.data.len() as isize),
-            self.data.as_ptr().cast(), GL_STATIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, self.data.len() as i32);
+        }
+    }
+
+    fn bind_buffer(&self) {
+        unsafe {
+            glBufferData(GL_ARRAY_BUFFER, Vec3::<f32>::SIZE * (self.data.len() as isize),
+            self.data.as_ptr().cast(), GL_STATIC_DRAW);
         }
     }
     
@@ -89,7 +79,6 @@ impl RenderDecal {
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                 0, 0 as *const _);
             glEnableVertexAttribArray(0);
-    
         }
     }
 
@@ -101,12 +90,5 @@ impl RenderDecal {
 #[derive( Default)]
 //Entities that will be rendered. This will need to be carved
 pub struct Object<T:Clone>{
-    pub data : Vec<T>,
-    text_id: i32,
-}
-
-impl<T:Clone> Object<T> {
-    fn new(model_data: &mut [T], size: isize) -> Self{
-        Object { data: model_data.to_vec(), text_id: 0 }
-    }
+    pub data : Vec<T>
 }
